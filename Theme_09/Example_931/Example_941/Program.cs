@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Telegram.Bot;
 
 namespace Example_941
@@ -151,20 +152,44 @@ namespace Example_941
             Console.WriteLine("image downloaded.");
         }
 
-        //static void ListImage(string photo_unique_id)   ////
-        //{
-        //    DirectoryInfo listInfo = new DirectoryInfo(debug_path + "listImgs");
+        static void ListImage(string photo_unique_id)   ////
+        {
+            DirectoryInfo listInfo = new DirectoryInfo(debug_path + "listImgs.txt");
 
-        //    if (!listInfo.Exists)
-        //    {
-        //        ///Create > List > Add > Write
+            if (!listInfo.Exists)
+            {
+                ///Create > List > Add > Write
+                ///
+                List<string> listImgs = new List<string>();
 
-        //        StreamWriter streamWriter = new StreamWriter(Encoding En);
-        //    }
-        //    else
-        //    {
-        //        ///Read > List > Add > Write
-        //    }
-        //}
+                using (StreamWriter streamWriter = new StreamWriter(File.Open("listImgs.txt", FileMode.OpenOrCreate)))
+                {
+                    listImgs.Add(photo_unique_id);
+                    streamWriter.WriteLine(listImgs);
+                }
+            }
+            else
+            {
+                ///Read > List > Add > Write
+
+                List<string> listImgs = new List<string>();
+
+                string line;
+
+                using (StreamReader streamReader = new StreamReader(debug_path + "listImgs.txt", Encoding.Unicode))
+                {
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        listImgs.Add(line);
+                    }
+                }
+
+                using (StreamWriter streamWriter = new StreamWriter("listImgs.txt", true, Encoding.Unicode))
+                {
+                    listImgs.Add(photo_unique_id);
+                    streamWriter.WriteLine(listImgs);
+                }
+            }
+        }
     }
 }

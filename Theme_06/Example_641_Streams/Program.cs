@@ -54,7 +54,6 @@ namespace Example_641_Streams
                     Console.WriteLine(sr.ReadLine());   // Записать текущее имя каталога в файл
                 }
             }
-
         }
     }
 }
