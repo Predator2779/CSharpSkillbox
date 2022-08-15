@@ -52,7 +52,7 @@ namespace Example_004_Array2D
             }
 
 
-
+            Console.ReadKey();
 
 
         }

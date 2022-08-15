@@ -6,22 +6,25 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Telegram.Bot;
 
 namespace Example_941
 {
-    class Program
+    public class Program
     {
-        static readonly TelegramBotClient bot = new TelegramBotClient(Token());
         static readonly string darkknightID = "684165898";
-        static readonly string botToken = $"bot{Token()}";
-        static readonly string startUrl = $"https://api.telegram.org/{botToken}/";
-        static readonly string debug_path = @"G:\Work\_VS\VS_HWork\Theme_09\Example_931\Example_941\bin\Debug\";
+        static readonly string userName = Environment.UserName;
+        static readonly string root_path = @"C:\Users\" + userName + @"\Documents\MonkeyBot\";
+        static readonly string token_path = root_path + "token.txt";
+        static readonly string logs_path = root_path + "Logs" + @"\";
+        static readonly string images_path = root_path + "Images" + @"\";
+        static readonly string startUrl = $"https://api.telegram.org/bot{Token()}/";
+        static readonly TelegramBotClient bot = new TelegramBotClient(Token());
 
         static private string Token()
         {
-            string token = File.ReadAllText(@"G:\Work\token.txt");
-            return token;
+            return File.ReadAllText(token_path);
         }
 
         static void Main(string[] args)
@@ -96,11 +99,11 @@ namespace Example_941
 
                         Console.WriteLine("_photo");
                         Console.WriteLine(Convert.ToString(msg));
-                        //UploadImage(darkknightID, );     ////
                         DownLoadImage(photo_id, photo_unique_id);
+                        UploadImage(darkknightID);
                     }
 
-                    Thread.Sleep(50);
+                    //Thread.Sleep(50);
                 }
             }
         }
@@ -120,51 +123,108 @@ namespace Example_941
             }
         }
 
-        static async void UploadImage(string user_id, string photo_id)
+        static void UploadImage(string user_id)
         {
-            WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
+            Random random = new Random();
 
-            while (true)
-            {
-                string url = $"{startUrl}sendMessage?chat_id={user_id}&photo={photo_id}";
-                Console.WriteLine(url);
-                Console.WriteLine(webClient.DownloadString(url));
+            Console.WriteLine("Start upload...");
 
-                Thread.Sleep(50);
-            }
-        }   ////
+            List<string> listImgs = OpenImageList();
+
+            string photo_id = listImgs[random.Next(0, listImgs.Count)];
+
+            bot.SendPhotoAsync(user_id, GetPhotoID(photo_id));
+
+            Console.WriteLine("Image uploaded.");
+        }
 
         static async void DownLoadImage(string photo_id, string photo_unique_id)
         {
-            Console.WriteLine("start download...");
+            FileInfo imageInfo = new FileInfo($"{images_path}{photo_unique_id}.png");
 
-            var file = await bot.GetFileAsync(photo_id, default);
+            if (!imageInfo.Exists)
+            {
+                Console.WriteLine("Start download...");
 
-            FileStream filestream = new FileStream($"{debug_path}{photo_unique_id}.png", FileMode.Create);
+                using (FileStream fileStream = new FileStream($"{images_path}{photo_unique_id}.png", FileMode.Create))
+                {
+                    var file = await bot.GetFileAsync(photo_id, default);
 
-            await bot.DownloadFileAsync(file.FilePath, filestream);
+                    await bot.DownloadFileAsync(file.FilePath, fileStream);
+                }
 
-            filestream.Close();
+                AddPhotoToList(photo_id, photo_unique_id);
 
-            filestream.Dispose();
-
-            Console.WriteLine("image downloaded.");
+                Console.WriteLine("Image downloaded.");
+            }
+            else
+            {
+                Console.WriteLine("Image exists.");
+            }
         }
 
-        //static void ListImage(string photo_unique_id)   ////
-        //{
-        //    DirectoryInfo listInfo = new DirectoryInfo(debug_path + "listImgs");
+        static void AddPhotoToList(string photo_id, string photo_unique_id)
+        {
+            FileInfo listInfo = new FileInfo(logs_path + "listImgs.txt");
 
-        //    if (!listInfo.Exists)
-        //    {
-        //        ///Create > List > Add > Write
+            if (!listInfo.Exists)
+            {
+                CreateImageList();
+            }
 
-        //        StreamWriter streamWriter = new StreamWriter(Encoding En);
-        //    }
-        //    else
-        //    {
-        //        ///Read > List > Add > Write
-        //    }
-        //}
+            List<string> listImgs = OpenImageList();
+
+            listImgs.Add($"{photo_id}#{photo_unique_id}");
+
+            using (StreamWriter streamWriter = new StreamWriter(logs_path + "listImgs.txt"))
+            {
+                foreach (var item in listImgs)
+                {
+                    streamWriter.WriteLine(item);
+                }
+            }
+        }
+
+        static void CreateImageList()
+        {
+            using (StreamWriter streamWriter = new StreamWriter(File.Create(logs_path + "listImgs.txt")))
+            {
+
+            }
+        }
+
+        static List<string> OpenImageList()
+        {
+            string line;
+
+            List<string> listImgs = new List<string>();
+
+            ///Read > List > Add
+
+            using (StreamReader streamReader = new StreamReader(logs_path + "listImgs.txt"))
+            {
+                while ((line = streamReader.ReadLine()) != null)
+                {
+                    listImgs.Add(line);
+                }
+            }
+
+            return listImgs;
+        }
+
+        static string GetPhotoID(string photoName)
+        {
+            string id = "";
+
+            foreach (char item in photoName)
+            {
+                if (item == '#')
+                    break;
+
+                id += item;
+            }
+
+            return id;
+        }
     }
 }

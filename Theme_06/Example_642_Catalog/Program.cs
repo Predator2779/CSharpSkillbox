@@ -38,9 +38,7 @@ namespace Example_642_Catalog
             //    } while (char.ToLower(key) == 'д');
             //}
 
-            #region Чтение
-
-             
+            #region Чтение          
 
             using (StreamReader sr = new StreamReader("data.csv", Encoding.Unicode))
             {
@@ -55,8 +53,6 @@ namespace Example_642_Catalog
             }
 
             #endregion
-
-
         }
     }
 }
